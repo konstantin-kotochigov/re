@@ -141,9 +141,12 @@ coordinate_features = ['geo_lat_1','geo_lon_1','geo_ring']
 # X_test['coord_pred'] = rf.predict(X_test.to_frame().T[coordinate_features])
 
 
+group_kfold = GroupKFold(n_splits=5)
+cvs = group_kfold.split(X, y, X["block_id"])
+
 rf = RandomForestRegressor()
 parameters = {'max_depth':(5,10,15), 'n_estimators':[100,1000]}
-cv = GridSearchCV(rf, parameters, cv=5, verbose=2, scoring=make_scorer(get_error))
+cv = GridSearchCV(rf, parameters, cv=cvs, verbose=2, scoring=make_scorer(get_error))
 cv.fit(X[features],y)
 cv_results = cv.cv_results_
 cv_table = pandas.DataFrame({"param":cv_results['params'], "error":cv_results['mean_test_score']}).sort_values(by="error", ascending=False)
