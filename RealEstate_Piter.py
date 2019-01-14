@@ -154,6 +154,7 @@ col_objects = {}
 min_instances = 10
 for x in features:
     col_objects[x]=sum(df[x]>0)
+
 col_objects_df = pandas.DataFrame.from_dict(col_objects, orient="index", columns=["cnt"]).sort_values("cnt")
 features = list(col_objects_df.index[col_objects_df.cnt>min_instances])
 
