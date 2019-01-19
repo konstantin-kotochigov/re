@@ -201,4 +201,19 @@ df = df.merge(average_price, on=['geo_lat_1','geo_lon_1'])
 
 df['geo_ring'] = round(df['geo_ring'], -3)
 
+# Check NULLs
+df[list(places_inverse.keys())].isna().sum(axis=0).sort_index().reset_index().to_csv("re/nulls.csv", sep=";", index=False)
+
+counts = {}
+for x in list(places_inverse.keys()):
+    counts[x] = sum(df[x] > 0)
+counts_df = pandas.DataFrame.from_dict(counts, orient="index", columns=["cnt"])
+counts_df['feature'] = counts_df.index.map(places_inverse)
+counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*","")
+counts_df = counts_df.sort_values(by="feature")
+counts_df['total'] = df.shape[0]
+counts_df = counts_df.reset_index()[['feature','cnt','total']]
+
+counts_df.to_csv("re/feature_density.csv", sep=";", index=False)
+
 df.to_csv("re/piter_df.csv", sep=";", header=True, index=False)
