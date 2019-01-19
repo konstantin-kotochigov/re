@@ -24,9 +24,13 @@ line = cian_data[0]
 data = line['data']
 places = data['places']
 
-# Create Attribute Dict for GeoMetrics
+# Dictionary to collect data while reading JSON
 places_dict = dict()
+
+# A map from feature index to name
 places_inverse = dict()
+
+# Fill in the maps
 for (i,x) in enumerate(places.keys()):
     places_dict["place"+str(i)+"_100"] = []
     places_dict["place"+str(i)+"_500"] = []
@@ -104,7 +108,7 @@ for line in cian_data:
         places_dict["place"+str(i)+"_100"].append(places[x]['cntInRadius']['100'])
         places_dict["place"+str(i)+"_500"].append(places[x]['cntInRadius']['500'])
         places_dict["place"+str(i)+"_1000"].append(places[x]['cntInRadius']['1000'])
-        if places[x]['minDistance'] is not None:
+        if places[x]['minDistance'] != []:
             places_dict["place"+str(i)+"_nearest"].append(places[x]['minDistance']['value'])
         else:
             places_dict["place"+str(i)+"_nearest"].append(None)
