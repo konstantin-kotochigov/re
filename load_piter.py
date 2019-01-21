@@ -207,6 +207,7 @@ df[list(places_inverse.keys())].isna().sum(axis=0).sort_index().reset_index().to
 counts = {}
 for x in list(places_inverse.keys()):
     counts[x] = sum(df[x] > 0)
+
 counts_df = pandas.DataFrame.from_dict(counts, orient="index", columns=["cnt"])
 counts_df['feature'] = counts_df.index.map(places_inverse)
 counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*","")
