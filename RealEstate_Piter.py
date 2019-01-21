@@ -331,3 +331,11 @@ for feature in modifiable_cat_features:
     plt.savefig("re/plots/" + str(min([feature_rank.get(feature+"_"+x, 1000) for x in feature_values]))+"_" + feature + ".png")
 
 
+# Check dependencies for School atribute
+test = X.groupby("place15_500", as_index=False)['target'].agg({"mean","count","std"})
+import matplotlib
+matplotlib.use('agg')
+plt.switch_backend('agg')
+import matplotlib.pyplot as plt
+plt.bar(list(test.index), test["mean"].values, yerr=test['std'].values)
+plt.savefig("re/plots/school_dict_500.png", dpi=300)
