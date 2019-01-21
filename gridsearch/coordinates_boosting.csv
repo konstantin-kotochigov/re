@@ -1,0 +1,9 @@
+error,param
+0.5436337625178826,"{'max_depth': 12, 'n_estimators': 100}"
+0.5436337625178826,"{'max_depth': 16, 'n_estimators': 250}"
+0.5432250153280196,"{'max_depth': 12, 'n_estimators': 250}"
+0.5432250153280196,"{'max_depth': 14, 'n_estimators': 250}"
+0.5430206417330881,"{'max_depth': 16, 'n_estimators': 100}"
+0.5428843926698004,"{'max_depth': 14, 'n_estimators': 100}"
+0.537775052796512,"{'max_depth': 10, 'n_estimators': 100}"
+0.5372981810750052,"{'max_depth': 10, 'n_estimators': 250}"

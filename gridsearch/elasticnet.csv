@@ -1,0 +1,3 @@
+error,param
+0.6331577407082236,"{'normalize': True, 'l1_ratio': 1.0, 'alpha': 1.5}"
+0.62928007023705,"{'normalize': True, 'l1_ratio': 1.0, 'alpha': 1.0}"
