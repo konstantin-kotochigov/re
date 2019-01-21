@@ -16,7 +16,7 @@ cian_data = json.load(open("re/cian_piter.json"))
 df = pandas.read_csv("re/piter_df.csv", sep=";")
 
 # Check nulls!
-df = df[df.place17_nearest.isna()==False]
+# df = df[df.place17_nearest.isna()==False]
 
 # Create Inverse Map
 line = cian_data[0]
@@ -76,6 +76,7 @@ get_error(y, X.geo_ads_mean)
 # Generate point of interest
 # X_test = df[df.address=="Россия, Санкт-Петербург , Октябрьская набережная, д 80 к 1"]
 X_test = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к1"].iloc[0]
+X_test = df.iloc[0]
 
 # Загрузить тестовую строчку для Питера
 test_places_file = open("re/places.json")
@@ -194,20 +195,20 @@ for x in col_type["numeric"]:
 col_f_importance['regr2_coef'] = col_f_importance.feature.map(col_importance['coeff'])
 # col_f_importance['regr2_intercept'] = col_f_importance.feature.map(col_importance['intercept'])
 
-linear_features = [x for x in features if x not in coordinate_features] + ['coord_pred']
+linear_features = [x for x in features if x not in coordinate_features]
 polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_features)) + list(map(lambda x: x+"_sqrt", linear_features))
 
 # Get coordinate model params
 for linear_feature in linear_features:
     print(linear_feature)
-    # X[linear_feature+"_square"] = X[linear_feature]**2
-    # X[linear_feature+"_sqrt"] = X[linear_feature].apply(math.sqrt)
+    X[linear_feature+"_square"] = X[linear_feature]**2
+    X[linear_feature+"_sqrt"] = X[linear_feature].apply(math.sqrt)
     X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature]) 
     X_test[linear_feature+"_square"] = X_test[linear_feature]**2
     # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
 
 # Optimize params for linear model
-parameters = {'normalize':[False,True], 'alpha':[0.0, 0.5, 1.0, 1.5], 'l1_ratio':[0.0, 0.25, 0.5, 0.75, 1.0]}
+parameters = {'normalize':[True], 'alpha':[1.0, 1.5], 'l1_ratio':[1.0]}
 lr_cv = GridSearchCV(ElasticNet(), parameters, cv=5, verbose=2, scoring=make_scorer(get_error))
 model = lr_cv.fit(X[polynomial_features], y)
 nonzero_features = sorted([x for x in list(zip(polynomial_features, lr_cv.best_estimator_.coef_)) if x[1]!=0], key=lambda tup: tup[1])
@@ -288,9 +289,10 @@ for feature in modifiable_integer_features:
         test_sample[feature+"_square"] = feature_value**2
         test_sample[feature+"_sqrt"] = math.sqrt(feature_value)
         feature_predictions[feature].append(round(lr.predict(test_sample.to_frame().T[polynomial_features])[0],2))
-    plt.switch_backend('agg')
+    # plt.switch_backend('agg')
+    plt.clf()
     # fig, ax = plt.subplots()
-    xnew = numpy.linspace(0,10,300)
+    xnew = numpy.linspace(min(list(feature_range)), max(list(feature_range))+1, len(feature_range)+1)
     if len(feature_range) <= 2: 
         power = 1
     else:
@@ -300,10 +302,15 @@ for feature in modifiable_integer_features:
     # plt.plot(feature_predictions[feature])
     # plt.savefig("re/plots/raw" + feature + ".png")
     # plt.switch_backend('agg')
-    plt.plot(xnew, power_smooth)
+    
+    # plt.plot(xnew, power_smooth)
+    plt.plot(feature_range, feature_predictions[feature], 'o-', xnew, power_smooth, 'ro--')
+    
     if feature.startswith("place"):
         plt.title(places_inverse[feature])
-    plt.savefig("re/plots/" + str(feature_rank[feature])+"_"+ feature + ".png")
+    if len(feature_range) < 10:
+         plt.xticks(feature_range)
+    plt.savefig("re/plots/" + str(feature_rank[feature])+"_"+ feature + ".png", dpi=300)
 
 
 # Plot categorical features
