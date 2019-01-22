@@ -225,8 +225,8 @@ df.to_csv("re/piter_df.csv", sep=";", header=True, index=False)
 
 # Generate point of interest
 # X_test = df[df.address=="Россия, Санкт-Петербург , Октябрьская набережная, д 80 к 1"]
-X_test = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
-# X_test = df.iloc[0]
+# X_test = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
+X_test = df.iloc[0]
 
 # Загрузить тестовую строчку для Питера
 test_places_file = open("re/target.json")

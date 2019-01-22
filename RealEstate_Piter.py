@@ -157,7 +157,6 @@ polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_f
 
 
 # Random Forest Model
-
 group_kfold = GroupKFold(n_splits=5)
 cvs = group_kfold.split(X, y, X["block_id"])
 
@@ -202,7 +201,8 @@ X_test['linear_pred'] = lr.predict(X_test.to_frame().T[polynomial_features])
 
 get_error(X.linear_pred, y)
 
-
-
+rf = RandomForestRegressor(max_depth=10, n_estimators=1000)
+rf.fit(X[polynomial_features],y)
+X_test['rf_pred'] = rt.predict(X_Test.to_frame().T[polynomial_features])[1]
 
 
