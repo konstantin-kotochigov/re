@@ -7,8 +7,13 @@ from sklearn.linear_model import LinearRegression,  LassoLarsCV, ElasticNet
 from sklearn.metrics import mean_squared_error
 from pandas.io.json import json_normalize
 from sklearn.metrics import make_scorer
+from sklearn.neighbors import KernelDensity
 import math
 import numpy
+from tqdm import tqdm
+
+# Compute NULL statistics and do some EDA
+assess_quality = False
 
 # Extract from Postgres
 from sqlalchemy import create_engine
@@ -204,17 +209,94 @@ df['geo_ring'] = round(df['geo_ring'], -3)
 # Check NULLs
 df[list(places_inverse.keys())].isna().sum(axis=0).sort_index().reset_index().to_csv("re/nulls.csv", sep=";", index=False)
 
-counts = {}
-for x in list(places_inverse.keys()):
-    counts[x] = sum(df[x] > 0)
+nearest_features = [x for x in df.columns if x.endswith("_nearest")]
+for x in nearest_features:
+    df[x] = df[x].fillna(value=10000)
 
-counts_df = pandas.DataFrame.from_dict(counts, orient="index", columns=["cnt"])
-counts_df['feature'] = counts_df.index.map(places_inverse)
-counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*","")
-counts_df = counts_df.sort_values(by="feature")
-counts_df['total'] = df.shape[0]
-counts_df = counts_df.reset_index()[['feature','cnt','total']]
 
-counts_df.to_csv("re/feature_density.csv", sep=";", index=False)
+
+
 
 df.to_csv("re/piter_df.csv", sep=";", header=True, index=False)
+
+
+
+# Load Test Point
+
+# Generate point of interest
+# X_test = df[df.address=="Россия, Санкт-Петербург , Октябрьская набережная, д 80 к 1"]
+X_test = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
+# X_test = df.iloc[0]
+
+# Загрузить тестовую строчку для Питера
+test_places_file = open("re/target.json")
+test_places = json.loads(test_places_file.read())
+test_places_file.close()
+
+places_converter = {v:k[0:k.index("_")] for k,v in places_inverse.items()}
+
+if (assess_qulaity):
+
+    counts = {}
+    for x in list(places_inverse.keys()):
+        counts[x] = sum(df[x] > 0)
+
+    counts_df = pandas.DataFrame.from_dict(counts, orient="index", columns=["cnt"])
+    counts_df['feature'] = counts_df.index.map(places_inverse)
+    counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*","")
+    counts_df = counts_df.sort_values(by="feature")
+    counts_df['total'] = df.shape[0]
+    counts_df = counts_df.reset_index()[['feature','cnt','total']]
+
+    counts_df.to_csv("re/feature_density.csv", sep=";", index=False)
+
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.switch_backend("agg")
+
+    for x in tqdm(nearest_features, total = len(nearest_features), unit="features"):
+        kde = KernelDensity(kernel="gaussian", bandwidth=100)
+        dummy = kde.fit(df[x][:,numpy.newaxis])
+        X_plot = numpy.linspace(0, 10000, 250)[:, numpy.newaxis]
+        d = numpy.exp(kde.score_samples(X_plot))
+        dummy = plt.clf()
+        dummy = plt.xlabel("km")
+        dummy = plt.xlim(0,2000)
+        dummy = plt.ylabel("Density")
+        dummy = plt.title(places_inverse[x])
+        dummy = plt.axvline(x=df[x][df[x] < 10000].mean(), color='red', alpha=0.25, linestyle='--')
+        # plt.xticks([])
+        dummy = plt.plot(X_plot, d, 'o-')
+        # plt.hist(y_pred, bins=20)
+        dummy = plt.savefig("re/plots/nearest_densities/"+x+"_density.png", dpi=300)
+
+
+
+# test_string = {}
+# for place_attribute, place_data in test_places.items():
+#     test_string[places_converter[place_attribute]+"_100"] = place_data['cntInRadius']['100']
+#     test_string[places_converter[place_attribute]+"_500"] = place_data['cntInRadius']['500']
+#     test_string[places_converter[place_attribute]+"_1000"] = place_data['cntInRadius']['1000']
+#     test_string[places_converter[place_attribute]+"_nearest"] = place_data['minDistance']['value']
+
+# for k,v in test_string.items():
+#     X_test.loc[k] = v
+
+# X_test['building_buildYear'] = 0.0 # New
+# X_test['building_totalArea'] = 35 # Как считать?
+# X_test['geo_ring'] = 2000
+# X_test['geo_lat'] = 59.872067
+# X_test['geo_lon'] = 30.474787
+# X_test['geo_lat_1'] = 59.9
+# X_test['geo_lon_1'] = 30.5
+# X_test['building_parking'] = 1
+# X_test['building_material_monolith'] = 1
+# X_test['building_material_brick'] = 0
+# X_test['geo_ads_mean'] = 
+# X_test['geo_ads_count'] =
+# X_test['building_passengerLiftsCount'] = 1
+# X_test['building_floors'] = 10
+# X_test['building_cargoLiftsCount'] = 0
+# X_test['block_id'] = "59.930.5"
