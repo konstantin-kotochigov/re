@@ -151,7 +151,8 @@ for x in tqdm(places_features, total=len(places_features), unit="features"):
 
 coordinate_features = ['geo_lat_1','geo_lon_1','geo_ring']
 linear_features = [x for x in features if x not in coordinate_features]
-polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_features)) + list(map(lambda x: x+"_sqrt", linear_features)) + binary_places_features
+polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_features)) + list(map(lambda x: x+"_sqrt", linear_features)) 
+#   + binary_places_features
 
 
 
