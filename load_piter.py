@@ -235,7 +235,7 @@ test_places_file.close()
 
 places_converter = {v:k[0:k.index("_")] for k,v in places_inverse.items()}
 
-if (assess_qulaity):
+if (assess_quality):
 
     counts = {}
     for x in list(places_inverse.keys()):
