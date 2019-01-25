@@ -10,6 +10,7 @@ from sklearn.metrics import make_scorer, explained_variance_score
 from sklearn.feature_selection import f_regression
 import math
 import numpy
+from tqdm import tqdm
 
 # Load Data
 cian_data = json.load(open("re/cian_piter.json"))
@@ -201,8 +202,8 @@ X_test['linear_pred'] = lr.predict(X_test.to_frame().T[polynomial_features])
 
 get_error(X.linear_pred, y)
 
-rf = RandomForestRegressor(max_depth=10, n_estimators=1000)
-rf.fit(X[polynomial_features],y)
+rf = RandomForestRegressor(max_depth=10, n_estimators=1000, n_jobs=-1)
+rf.fit(X[linear_features],y)
 X_test['rf_pred'] = rf.predict(X_test.to_frame().T[linear_features])[0]
 
 
