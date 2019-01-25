@@ -47,7 +47,7 @@ features.remove('geo_lon')
 features.remove('geo_lat_2')
 features.remove('geo_lon_2')
 features.remove('target')
-features.remove('building_buildYear') # we converted them
+# features.remove('building_buildYear') # we converted them
 features.remove('building_material')
 features.remove('link')
 features.remove('block_id')
@@ -63,7 +63,7 @@ def get_error(y, y_pred):
     t = abs(y_pred - y) / y
     return (len(t[t<0.2])/len(t))
 
-X = df[df.city=="Санкт-Петербург"]
+X = df[df.city=="Санкт-Петербург"].copy()
 y = df[df.city=="Санкт-Петербург"]['target']
 
 
@@ -175,7 +175,7 @@ cv_table.to_csv("re/gridsearch/coordinates_randomforest.csv", index=False)
 
 # Generate features
 for linear_feature in tqdm(linear_features, total=len(linear_features), unit="features"):
-    print(linear_feature)
+    # print(linear_feature)
     X[linear_feature+"_square"] = X[linear_feature]**2
     X[linear_feature+"_sqrt"] = X[linear_feature].apply(math.sqrt)
     X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature]) 
@@ -183,7 +183,7 @@ for linear_feature in tqdm(linear_features, total=len(linear_features), unit="fe
     # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
 
 # Optimize params for linear model
-parameters = {'normalize':[True], 'alpha':[1.0, 1.5], 'l1_ratio':[1.0]}
+parameters = {'normalize':[True], 'alpha':[1.0, 1.5, 2.0], 'l1_ratio':[1.0]}
 lr_cv = GridSearchCV(ElasticNet(), parameters, cv=5, verbose=2, scoring=make_scorer(get_error))
 model = lr_cv.fit(X[polynomial_features], y)
 nonzero_features = sorted([x for x in list(zip(polynomial_features, lr_cv.best_estimator_.coef_)) if x[1]!=0], key=lambda tup: tup[1])
@@ -194,7 +194,7 @@ cv_table = pandas.DataFrame({"param":cv_results['params'], "error":cv_results['m
 cv_table.to_csv("re/gridsearch/elasticnet.csv", index=False)
 
 # model linear estimate
-lr = ElasticNet(alpha=1.0, l1_ratio=1.0, normalize=True)
+lr = ElasticNet(alpha=2.0, l1_ratio=1.0, normalize=True)
 lr.fit(X[polynomial_features], y)
 X['linear_pred'] = lr.predict(X[polynomial_features])
 X_test['linear_pred'] = lr.predict(X_test.to_frame().T[polynomial_features])
@@ -203,6 +203,6 @@ get_error(X.linear_pred, y)
 
 rf = RandomForestRegressor(max_depth=10, n_estimators=1000)
 rf.fit(X[polynomial_features],y)
-X_test['rf_pred'] = rt.predict(X_Test.to_frame().T[polynomial_features])[1]
+X_test['rf_pred'] = rf.predict(X_test.to_frame().T[linear_features])[0]
 
 

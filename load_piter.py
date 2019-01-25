@@ -225,8 +225,8 @@ df.to_csv("re/piter_df.csv", sep=";", header=True, index=False)
 
 # Generate point of interest
 # X_test = df[df.address=="Россия, Санкт-Петербург , Октябрьская набережная, д 80 к 1"]
-# X_test = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
-X_test = df.iloc[0]
+# X_test1 = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
+X_test = df.iloc[0].copy()
 
 # Загрузить тестовую строчку для Питера
 test_places_file = open("re/target.json")
@@ -274,29 +274,34 @@ if (assess_quality):
 
 
 
-# test_string = {}
-# for place_attribute, place_data in test_places.items():
-#     test_string[places_converter[place_attribute]+"_100"] = place_data['cntInRadius']['100']
-#     test_string[places_converter[place_attribute]+"_500"] = place_data['cntInRadius']['500']
-#     test_string[places_converter[place_attribute]+"_1000"] = place_data['cntInRadius']['1000']
-#     test_string[places_converter[place_attribute]+"_nearest"] = place_data['minDistance']['value']
+test_string = {}
+for place_attribute, place_data in test_places.items():
+    # print(place_attribute, place_data)
+    test_string[places_converter[place_attribute]+"_100"] = place_data['cntInRadius']['100']
+    test_string[places_converter[place_attribute]+"_500"] = place_data['cntInRadius']['500']
+    test_string[places_converter[place_attribute]+"_1000"] = place_data['cntInRadius']['1000']
+    if len(place_data['minDistance'])==0:
+        test_string[places_converter[place_attribute]+"_nearest"] = 10000
+    else:
+        test_string[places_converter[place_attribute] + "_nearest"] = place_data['minDistance']['value']
+
 
 # for k,v in test_string.items():
 #     X_test.loc[k] = v
 
-# X_test['building_buildYear'] = 0.0 # New
-# X_test['building_totalArea'] = 35 # Как считать?
-# X_test['geo_ring'] = 2000
-# X_test['geo_lat'] = 59.872067
-# X_test['geo_lon'] = 30.474787
-# X_test['geo_lat_1'] = 59.9
-# X_test['geo_lon_1'] = 30.5
-# X_test['building_parking'] = 1
-# X_test['building_material_monolith'] = 1
-# X_test['building_material_brick'] = 0
-# X_test['geo_ads_mean'] = 
-# X_test['geo_ads_count'] =
-# X_test['building_passengerLiftsCount'] = 1
-# X_test['building_floors'] = 10
-# X_test['building_cargoLiftsCount'] = 0
-# X_test['block_id'] = "59.930.5"
+X_test['building_buildYear'] = 0.0 # New
+X_test['building_totalArea'] = 50 # Как считать?
+X_test['geo_ring'] = 2000
+X_test['geo_lat'] = 59.872067
+X_test['geo_lon'] = 30.474787
+X_test['geo_lat_1'] = 59.9
+X_test['geo_lon_1'] = 30.5
+X_test['building_parking'] = 1
+X_test['building_material_monolith'] = 1
+X_test['building_material_brick'] = 0
+X_test['geo_ads_mean'] = 102000
+X_test['geo_ads_count'] = 903
+X_test['building_passengerLiftsCount'] = 1
+X_test['building_floors'] = 10
+X_test['building_cargoLiftsCount'] = 0
+X_test['block_id'] = "59.930.5"

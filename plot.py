@@ -42,9 +42,11 @@ from scipy.interpolate import make_interp_spline, BSpline
 features_dict = dict()
 for feature in modifiable_integer_features:
     features_dict[feature] = dict()
-    features_dict[feature]['min'] = min(X[feature])
-    features_dict[feature]['max'] = max(X[feature])
-    features_dict[feature]['mean'] = round(X[feature].mean())
+    # features_dict[feature]['min'] = min(X[feature])
+    # features_dict[feature]['max'] = max(X[feature])
+    # features_dict[feature]['mean'] = round(X[feature].mean())
+    num_points =  min(len(X[feature].value_counts()), 20)
+    features_dict[feature]['range'] = numpy.linspace(min(X[feature]), max(X[feature]), num_points)
 
 # Plot integer features
 for feature in modifiable_integer_features:
@@ -55,24 +57,24 @@ for feature in modifiable_integer_features:
     #     continue
     lr_predictions[feature] = []
     rf_predictions[feature] = []
-    feature_range = range(int(features_dict[feature]['min']),int(features_dict[feature]['max'] + 1))
+    feature_range = features_dict[feature]['range']
     if len(feature_range) == 1:
         continue
-    for feature_value in list(feature_range):
+    for feature_value in feature_range:
         test_sample = X_test.copy()
         test_sample[feature] = feature_value
         test_sample[feature+"_square"] = feature_value**2
         test_sample[feature+"_sqrt"] = math.sqrt(feature_value)
         lr_predictions[feature].append(round(lr.predict(test_sample.to_frame().T[polynomial_features])[0],2))
-        rf_predictions[feature].append(round(rf.predict(test_sample.to_frame().T[features])[0],2))
+        rf_predictions[feature].append(round(rf.predict(test_sample.to_frame().T[linear_features])[0],2))
     # plt.switch_backend('agg')
     plt.clf()
     # fig, ax = plt.subplots()
-    xnew = numpy.linspace(min(list(feature_range)), max(list(feature_range))+1, len(feature_range)+1)
-    if len(feature_range) <= 2: 
-        power = 1
-    else:
-        power = 2
+    # xnew = numpy.linspace(features_dict[feature]['min'], features_dict[feature]['max'], len(feature_range))
+    # if len(feature_range) <= 2:
+    #     power = 1
+    # else:
+    #     power = 2
     # spl = make_interp_spline(list(feature_range),lr_predictions[feature], k=power)
     # power_smooth = spl(xnew)
     # plt.plot(feature_predictions[feature])
