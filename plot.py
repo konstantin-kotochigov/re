@@ -107,3 +107,34 @@ for feature in modifiable_cat_features:
     ax.set_yticks(ind)
     ax.set_yticklabels(feature_values)
     plt.savefig("re/plots/" + str(min([feature_rank.get(feature+"_"+x, 1000) for x in feature_values]))+"_" + feature + ".png")
+
+
+
+
+features_rank_df = pandas.DataFrame.from_dict(feature_rank, orient="index",columns=["rank"])
+features_rank_df['feature'] = features_rank_df.index
+features_rank_df['feature_name'] = features_rank_df.feature.map(places_inverse)
+features_rank_df.sort_values(by="rank", inplace=True)
+
+features_rank_df.to_csv("re/plots/feature_list.csv", sep=";", index=False)
+
+
+
+
+
+
+
+
+
+from sqlalchemy import create_engine
+engine = create_engine('postgresql://cian:5Dsy4LcXQVPSfKeRzEB@46.183.221.135:5432/cian')
+
+x = pandas.read_sql_query('select * from public.cian ',con=engine)
+
+
+
+cian_data = json.load(open("re/cian_piter.json"))
+res = []
+for line in cian_data:
+    places = line['data']['places']
+    res.append(places['Ипподром']['cntInRadius']['1000'])

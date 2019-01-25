@@ -46,6 +46,9 @@ for (i,x) in enumerate(places.keys()):
     places_inverse["place"+str(i)+"_1000"] = x
     places_inverse["place"+str(i)+"_nearest"] = x
 
+places_inverse_df = pandas.DataFrame.from_dict(places_inverse, orient="index", columns=["feature_name"])
+places_inverse_df.to_csv("re/feature_encoding.csv", sep=";", index=True)
+
 # ID attributes
 address = []
 target = []
@@ -247,9 +250,7 @@ if (assess_quality):
     counts_df = counts_df.sort_values(by="feature")
     counts_df['total'] = df.shape[0]
     counts_df = counts_df.reset_index()[['feature','cnt','total']]
-
     counts_df.to_csv("re/feature_density.csv", sep=";", index=False)
-
 
     import matplotlib
     matplotlib.use("Agg")
@@ -271,6 +272,15 @@ if (assess_quality):
         dummy = plt.plot(X_plot, d, 'o-')
         # plt.hist(y_pred, bins=20)
         dummy = plt.savefig("re/plots/nearest_densities/"+x+"_density.png", dpi=300)
+
+    # Check dependencies for School atribute
+    # test = X.groupby("place15_500", as_index=False)['target'].agg({"mean","count","std"})
+    # import matplotlib
+    # matplotlib.use('agg')
+    # plt.switch_backend('agg')
+    # import matplotlib.pyplot as plt
+    # plt.bar(list(test.index), test["mean"].values, yerr=test['std'].values)
+    # plt.savefig("re/plots/school_dict_500.png", dpi=300)
 
 
 
