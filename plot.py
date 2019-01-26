@@ -18,8 +18,6 @@ feature_rank = {x:n for n,x in enumerate(nonzero_features_sorted_unique)}
 # modifiable_features = [x for x in features if x not in ['geo_ring_1','geo_ring_2','geo_ring_3','geo_lat_1','goe_lon_1']]
 modifiable_features = [x for x in nonzero_features if x not in ['coord_pred','geo_ads_count','geo_ads_mean']]
 modifiable_integer_features = [x for x in modifiable_features if x[0:5] in "place"] + ['building_parking','building_cargoLiftsCount','building_passengerLiftsCount']
-modifiable_real_features = ['building_totalArea','building_buildYear']
-modifiable_cat_features = ['building_material']
 # modifiable_numeric_features = modifiable_integer_features + modifiable_real_features
 
 import matplotlib.pyplot as plt
@@ -30,11 +28,10 @@ import matplotlib.pyplot as plt
 # test_samples = test_samples[polynomial_features]
 
 # Create two lists to gather predictions for an attribute range
-lr_predictions = dict()
-rf_predictions = {}
 
 import matplotlib
 matplotlib.use('Agg')
+plt.switch_backend("Agg")
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline, BSpline
 
@@ -48,8 +45,12 @@ for feature in modifiable_integer_features:
     num_points =  min(len(X[feature].value_counts()), 20)
     features_dict[feature]['range'] = numpy.linspace(min(X[feature]), max(X[feature]), num_points)
 
+lr_predictions = dict()
+rf_predictions = dict()
+result_json = []
+
 # Plot integer features
-for feature in modifiable_integer_features:
+for feature in modifiable_integer_features[0:2]:
     
     # zero_indexes = [n for n,x in enumerate(lr.coef_) if x == 0.0]
     print(feature)
@@ -82,13 +83,17 @@ for feature in modifiable_integer_features:
     # plt.switch_backend('agg')
     
     # plt.plot(xnew, power_smooth)
-    plt.plot(feature_range, lr_predictions[feature], 'o-', feature_range, rf_predictions[feature], 'r--')
+    plt.plot(feature_range, lr_predictions[feature], 'o-', feature_range)
     
     if feature.startswith("place"):
         plt.title(places_inverse[feature] + "(" + feature + ")")
     if len(feature_range) < 10:
          plt.xticks(feature_range)
-    plt.savefig("re/plots/" + str(feature_rank[feature])+"_"+ feature + ".png", dpi=300)
+    plt.savefig("re/plots/" + str(feature_rank.get(feature,""))+"_"+ feature + ".png", dpi=300)
+    result_json.append({"feature_id":feature,"feature_name":places_inverse.get(feature,""), "feature_rank":feature_rank[feature], "x":list(feature_range), "y":list(lr_predictions[feature])})
+    # result_json[feature] = {"feature_name": places_inverse.get(feature, "")}
+    # result_json[feature] = {"feature_name": places_inverse.get(feature, ""), "feature_rank": feature_rank[feature], "x": list(feature_range)}
+    # result_json[feature] = {"feature_name": places_inverse.get(feature, ""), "feature_rank": feature_rank[feature],"x": feature_range, "y": lr_predictions[feature]}
 
 
 # Plot categorical features
@@ -108,6 +113,10 @@ for feature in modifiable_cat_features:
     ax.set_yticklabels(feature_values)
     plt.savefig("re/plots/" + str(min([feature_rank.get(feature+"_"+x, 1000) for x in feature_values]))+"_" + feature + ".png")
 
+import json
+outfile = open('re/data.json', 'w')
+json.dump(result_json, outfile)
+outfile.close()
 
 
 
