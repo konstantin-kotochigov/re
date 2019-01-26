@@ -50,7 +50,7 @@ rf_predictions = dict()
 result_json = []
 
 # Plot integer features
-for feature in modifiable_integer_features[0:2]:
+for feature in modifiable_integer_features:
     
     # zero_indexes = [n for n,x in enumerate(lr.coef_) if x == 0.0]
     print(feature)
