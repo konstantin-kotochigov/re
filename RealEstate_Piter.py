@@ -89,23 +89,13 @@ for linear_feature in tqdm(linear_features, total=len(linear_features), unit="fe
     # print(linear_feature)
     X[linear_feature+"_square"] = X[linear_feature]**2
     X[linear_feature+"_sqrt"] = X[linear_feature].apply(math.sqrt)
-    X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature]) 
-    X_test[linear_feature+"_square"] = X_test[linear_feature]**2
+    # X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature])
+    # X_test[linear_feature+"_square"] = X_test[linear_feature]**2
     # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
 
-optimize = False
 
-if (optimize):
-    # Optimize params for linear model
-    parameters = {'normalize':[True], 'alpha':[1.0, 1.5, 2.0], 'l1_ratio':[1.0]}
-    lr_cv = GridSearchCV(ElasticNet(), parameters, cv=5, verbose=2, scoring=make_scorer(get_error))
-    model = lr_cv.fit(X[polynomial_features], y)
-    nonzero_features = sorted([x for x in list(zip(polynomial_features, lr_cv.best_estimator_.coef_)) if x[1]!=0], key=lambda tup: tup[1])
-    for x in nonzero_features:
-        print(x[0],x[1])
-    cv_results = lr_cv.cv_results_
-    cv_table = pandas.DataFrame({"param":cv_results['params'], "error":cv_results['mean_test_score']}).sort_values(by="error", ascending=False)
-    cv_table.to_csv("re/gridsearch/elasticnet.csv", index=False)
+
+
 
 # model linear estimate
 lr = ElasticNet(alpha=2.0, l1_ratio=1.0, normalize=True)
