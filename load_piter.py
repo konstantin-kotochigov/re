@@ -49,119 +49,119 @@ for (i,x) in enumerate(places.keys()):
 places_inverse_df = pandas.DataFrame.from_dict(places_inverse, orient="index", columns=["feature_name"])
 places_inverse_df.to_csv("re/feature_encoding.csv", sep=";", index=True)
 
-    # ID attributes
-    address = []
-    target = []
-    name = []
-    city = []
-    link = []
+# ID attributes
+address = []
+target = []
+name = []
+city = []
+link = []
 
-    # Building attributes
-    building_floors = []
-    building_buildYear = []
-    building_materialType = []
-    building_cargoLiftsCount = []
-    building_passengerLiftsCount =[]
-    building_parking = []
-    building_totalArea = []
+# Building attributes
+building_floors = []
+building_buildYear = []
+building_materialType = []
+building_cargoLiftsCount = []
+building_passengerLiftsCount =[]
+building_parking = []
+building_totalArea = []
+
+# Geo Attributes
+geo_lat = []
+geo_lon = []
+geo_lat_1 = []
+geo_lon_1 = []
+geo_lat_2 = []
+geo_lon_2 = []
+geo_ring_dist = []
+
+geo_underground_dist = []
+geo_underground_new = []
+
+# flatType = []
+# floorNumber = []
+# roomsCount = []
+
+line_num = 0
+for line in cian_data:
+
+    line_num = line_num + 1
+    if line_num % 1000 == 0:
+        print("records read: "+str(line_num))
+
+    # Inner Data Structures
+    data = line['data']
+    rings = line['data']['rings']
+    places = line['data']['places']
+
+    # ID attributes
+    address.append(line['data']['geo']['userInput'])
+    geo_lat.append(line['data']['geo']['coordinates']['lat'])
+    geo_lon.append(line['data']['geo']['coordinates']['lng'])
+    city.append(
+        ([x for x in data['geo']['address'] if x['type']=="location" and x['locationTypeId']==1] +
+        [x for x in data['geo']['address'] if x['type']=="location"])
+        [0]['fullName']
+    )
+    link.append(line['data']['siteUrl'])
+    # address_street = [x for x in data['geo']['address'] if x['type']=="street"][0]['fullName']
+    # address_house = [x for x in data['geo']['address'] if x['type']=="house"][0]['fullName']
+    # address.append(address_city+","+address_street+","+address_house)
 
     # Geo Attributes
-    geo_lat = []
-    geo_lon = []
-    geo_lat_1 = []
-    geo_lon_1 = []
-    geo_lat_2 = []
-    geo_lon_2 = []
-    geo_ring_dist = []
-
-    geo_underground_dist = []
-    geo_underground_new = []
-
-    # flatType = []
-    # floorNumber = []
-    # roomsCount = []
-
-    line_num = 0
-    for line in cian_data:
-
-        line_num = line_num + 1
-        if line_num % 1000 == 0:
-            print("records read: "+str(line_num))
-
-        # Inner Data Structures
-        data = line['data']
-        rings = line['data']['rings']
-        places = line['data']['places']
-
-        # ID attributes
-        address.append(line['data']['geo']['userInput'])
-        geo_lat.append(line['data']['geo']['coordinates']['lat'])
-        geo_lon.append(line['data']['geo']['coordinates']['lng'])
-        city.append(
-            ([x for x in data['geo']['address'] if x['type']=="location" and x['locationTypeId']==1] +
-            [x for x in data['geo']['address'] if x['type']=="location"])
-            [0]['fullName']
-        )
-        link.append(line['data']['siteUrl'])
-        # address_street = [x for x in data['geo']['address'] if x['type']=="street"][0]['fullName']
-        # address_house = [x for x in data['geo']['address'] if x['type']=="house"][0]['fullName']
-        # address.append(address_city+","+address_street+","+address_house)
-
-        # Geo Attributes
-        geo_lat_2.append(round(float(line['data']['geo']['coordinates']['lat']),2))
-        geo_lon_2.append(round(float(line['data']['geo']['coordinates']['lng']),2))
-        geo_lat_1.append(round(float(line['data']['geo']['coordinates']['lat']),1))
-        geo_lon_1.append(round(float(line['data']['geo']['coordinates']['lng']),1))
-        geo_ring_dist.append(rings['КАД'])
-        underground_dist = None
-        underground_new = None
-        if 'undergrounds' in line['data']['geo']:
-            if len(line['data']['geo']['undergrounds']) > 0:
-                if 'time' in line['data']['geo']['undergrounds'][0]:
-                    underground_dist = line['data']['geo']['undergrounds'][0]['time']
-                if 'underConstruction' in line['data']['geo']['undergrounds'][0]:
-                    underground_new = line['data']['geo']['undergrounds'][0]['underConstruction']
-        geo_underground_dist.append(underground_dist)
-        geo_underground_new.append(underground_new)
-        # Geometrics
-        for (i,x) in enumerate(places.keys()):
-            places_dict["place"+str(i)+"_100"].append(places[x]['cntInRadius']['100'])
-            places_dict["place"+str(i)+"_500"].append(places[x]['cntInRadius']['500'])
-            places_dict["place"+str(i)+"_1000"].append(places[x]['cntInRadius']['1000'])
-            if places[x]['minDistance'] != []:
-                places_dict["place"+str(i)+"_nearest"].append(places[x]['minDistance']['value'])
-            else:
-                places_dict["place"+str(i)+"_nearest"].append(None)
-
-        # Target Variable
-        target.append(round(float(line['price'])/float(data['totalArea']),2))
-
-        # Building attributes
-        building_floors.append(data['building'].get('floorsCount',0))
-        building_cargoLiftsCount.append(data['building'].get('cargoLiftsCount',numpy.NaN))
-        building_passengerLiftsCount.append(data['building'].get('passengerLiftsCount',numpy.NaN))
-        building_totalArea.append(data['building'].get('totalArea',-1))
-        building_materialType.append(data['building'].get('materialType','NA'))
-        building_buildYear.append(2018 - data['building'].get("buildYear",2018))
-
-        if "parking" in data['building']:
-            parking = len(data['building']['parking'])
+    geo_lat_2.append(round(float(line['data']['geo']['coordinates']['lat']),2))
+    geo_lon_2.append(round(float(line['data']['geo']['coordinates']['lng']),2))
+    geo_lat_1.append(round(float(line['data']['geo']['coordinates']['lat']),1))
+    geo_lon_1.append(round(float(line['data']['geo']['coordinates']['lng']),1))
+    geo_ring_dist.append(rings['КАД'])
+    underground_dist = None
+    underground_new = None
+    if 'undergrounds' in line['data']['geo']:
+        if len(line['data']['geo']['undergrounds']) > 0:
+            if 'time' in line['data']['geo']['undergrounds'][0]:
+                underground_dist = line['data']['geo']['undergrounds'][0]['time']
+            if 'underConstruction' in line['data']['geo']['undergrounds'][0]:
+                underground_new = line['data']['geo']['undergrounds'][0]['underConstruction']
+    geo_underground_dist.append(underground_dist)
+    geo_underground_new.append(underground_new)
+    # Geometrics
+    for (i,x) in enumerate(places.keys()):
+        places_dict["place"+str(i)+"_100"].append(places[x]['cntInRadius']['100'])
+        places_dict["place"+str(i)+"_500"].append(places[x]['cntInRadius']['500'])
+        places_dict["place"+str(i)+"_1000"].append(places[x]['cntInRadius']['1000'])
+        if places[x]['minDistance'] != []:
+            places_dict["place"+str(i)+"_nearest"].append(places[x]['minDistance']['value'])
         else:
-            parking = 0.0
-        building_parking.append(parking)
+            places_dict["place"+str(i)+"_nearest"].append(None)
 
-        # flatType.append(data['flatType'])
-        # floorNumber.append(data['floorNumber'])
-        # roomsCount.append(data.get('roomsCount',-1))
+    # Target Variable
+    target.append(round(float(line['price'])/float(data['totalArea']),2))
+
+    # Building attributes
+    building_floors.append(data['building'].get('floorsCount',0))
+    building_cargoLiftsCount.append(data['building'].get('cargoLiftsCount',numpy.NaN))
+    building_passengerLiftsCount.append(data['building'].get('passengerLiftsCount',numpy.NaN))
+    building_totalArea.append(data['building'].get('totalArea',-1))
+    building_materialType.append(data['building'].get('materialType','NA'))
+    building_buildYear.append(2018 - data['building'].get("buildYear",2018))
+
+    if "parking" in data['building']:
+        parking = len(data['building']['parking'])
+    else:
+        parking = 0.0
+    building_parking.append(parking)
+
+    # flatType.append(data['flatType'])
+    # floorNumber.append(data['floorNumber'])
+    # roomsCount.append(data.get('roomsCount',-1))
 
 
 
-    # DataFrame
-    df = pandas.DataFrame({"address":address, "city":city, "target":target, "building_floors":building_floors, "building_material":building_materialType,
-        "building_buildYear":building_buildYear,"geo_ring":geo_ring_dist, "geo_lat":geo_lat, "geo_lon":geo_lon,
-        "geo_lat_1":geo_lat_1, "geo_lon_1":geo_lon_1, "geo_lat_2":geo_lat_2, "geo_lon_2":geo_lon_2, "geo_underground_dist":geo_underground_dist, "geo_underground_new":geo_underground_new,
-        "building_cargoLiftsCount":building_cargoLiftsCount, "building_passengerLiftsCount":building_passengerLiftsCount,
-        "building_parking":building_parking, "building_totalArea":building_totalArea, "building_floors":building_floors,"link":link})
+# DataFrame
+df = pandas.DataFrame({"address":address, "city":city, "target":target, "building_floors":building_floors, "building_material":building_materialType,
+    "building_buildYear":building_buildYear,"geo_ring":geo_ring_dist, "geo_lat":geo_lat, "geo_lon":geo_lon,
+    "geo_lat_1":geo_lat_1, "geo_lon_1":geo_lon_1, "geo_lat_2":geo_lat_2, "geo_lon_2":geo_lon_2, "geo_underground_dist":geo_underground_dist, "geo_underground_new":geo_underground_new,
+    "building_cargoLiftsCount":building_cargoLiftsCount, "building_passengerLiftsCount":building_passengerLiftsCount,
+    "building_parking":building_parking, "building_totalArea":building_totalArea, "building_floors":building_floors,"link":link})
 for (i,x) in enumerate(places.keys()):
     df["place"+str(i)+"_100"] = places_dict["place"+str(i)+"_100"]
     df["place"+str(i)+"_500"] = places_dict["place"+str(i)+"_500"]
@@ -205,6 +205,10 @@ df.loc[(df['building_buildYear']==0) | (df['building_buildYear']>200), 'building
 df['building_buildYear'] = df.building_buildYear / 100
 
 df.loc[df.building_totalArea < 0, 'building_totalArea'] = df.building_totalArea.mean()
+
+df['geo_underground_dist'] = round((df.geo_underground_dist - df.geo_underground_dist.mean()) / df.geo_underground_dist.std(), 2)
+df.geo_underground_dist.fillna(0, inplace=True)
+df.geo_underground_new.fillna(False, inplace=True)
 
 # Angle to Center of Moscow
 # moscow_gps = {"lat":55.755826, "lon":37.617300}
@@ -250,7 +254,7 @@ test_places_file.close()
 
 places_converter = {v:k[0:k.index("_")] for k,v in places_inverse.items()}
 
-if (assess_quality):
+if (assess_quality)
 
     counts = {}
     for x in list(places_inverse.keys()):
@@ -284,6 +288,25 @@ if (assess_quality):
         dummy = plt.plot(X_plot, d, 'o-')
         # plt.hist(y_pred, bins=20)
         dummy = plt.savefig("re/plots/nearest_densities/"+x+"_density.png", dpi=300)
+
+
+places_attributes = [x for x in df.columns if x.startswith("place")]
+
+for place_attr in tqdm(places_attributes, total=len(places_attributes), unit="features"):
+    y = []
+    plt.clf()
+    from_tick = df[place_attr].min()
+    to_tick = df[place_attr].max()
+    if to_tick - from_tick > 20:
+        num_ticks = 20
+    else:
+        num_ticks = to_tick - from_tick
+    x = numpy.linspace(from_tick, to_tick, num_ticks+1)
+    for x_val in x:
+        y.append(df.target[df[place_attr]==x_val].mean())
+    dummy = plt.bar(x=x, height=y)
+    dummy = plt.title(places_inverse[place_attr]+" ("+place_attr+")")
+    dummy = plt.savefig("re/plots/attributes/"+place_attr+".png", dpi=300)
 
     # Check dependencies for School atribute
     # test = X.groupby("place15_500", as_index=False)['target'].agg({"mean","count","std"})
