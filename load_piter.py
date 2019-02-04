@@ -206,8 +206,8 @@ df['building_buildYear'] = df.building_buildYear / 100
 
 df.loc[df.building_totalArea < 0, 'building_totalArea'] = df.building_totalArea.mean()
 
-df['geo_underground_dist'] = round((df.geo_underground_dist - df.geo_underground_dist.mean()) / df.geo_underground_dist.std(), 2)
-df.geo_underground_dist.fillna(0, inplace=True)
+# df['geo_underground_dist'] = round((df.geo_underground_dist - df.geo_underground_dist.mean()) / df.geo_underground_dist.std(), 2)
+df.geo_underground_dist.fillna(df.geo_underground_dist.mean(), inplace=True)
 df.geo_underground_new.fillna(False, inplace=True)
 
 # Angle to Center of Moscow
@@ -244,7 +244,7 @@ df.to_csv("re/piter_df.csv", sep=";", header=True, index=False)
 
 # Generate point of interest
 # X_test = df[df.address=="Россия, Санкт-Петербург , Октябрьская набережная, д 80 к 1"]
-# X_test1 = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
+# X_test1f. = df[df.address=="Санкт-Петербург, Невский район, Октябрьская наб. 98 к4"].iloc[0]
 X_test = df.iloc[0].copy()
 
 # Загрузить тестовую строчку для Питера
@@ -252,59 +252,75 @@ test_places_file = open("re/target.json")
 test_places = json.loads(test_places_file.read())
 test_places_file.close()
 
-places_converter = {v:k[0:k.index("_")] for k,v in places_inverse.items()}
+places_converter = {v: k[0:k.index("_")] for k, v in places_inverse.items()}
 
-if (assess_quality)
-
+if (assess_quality):
     counts = {}
     for x in list(places_inverse.keys()):
         counts[x] = sum(df[x] > 0)
-
     counts_df = pandas.DataFrame.from_dict(counts, orient="index", columns=["cnt"])
     counts_df['feature'] = counts_df.index.map(places_inverse)
-    counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*","")
+    counts_df['feature'] = counts_df.feature + counts_df.index.str.replace("place[0-9]*", "")
     counts_df = counts_df.sort_values(by="feature")
     counts_df['total'] = df.shape[0]
-    counts_df = counts_df.reset_index()[['feature','cnt','total']]
+    counts_df = counts_df.reset_index()[['feature', 'cnt', 'total']]
     counts_df.to_csv("re/feature_density.csv", sep=";", index=False)
-
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     plt.switch_backend("agg")
-
-    for x in tqdm(nearest_features, total = len(nearest_features), unit="features"):
+    for x in tqdm(nearest_features, total=len(nearest_features), unit="features"):
         kde = KernelDensity(kernel="gaussian", bandwidth=100)
-        dummy = kde.fit(df[x][:,numpy.newaxis])
+        dummy = kde.fit(df[x][:, numpy.newaxis])
         X_plot = numpy.linspace(0, 10000, 250)[:, numpy.newaxis]
         d = numpy.exp(kde.score_samples(X_plot))
         dummy = plt.clf()
         dummy = plt.xlabel("km")
-        dummy = plt.xlim(0,2000)
+        dummy = plt.xlim(0, 2000)
         dummy = plt.ylabel("Density")
         dummy = plt.title(places_inverse[x])
         dummy = plt.axvline(x=df[x][df[x] < 10000].mean(), color='red', alpha=0.25, linestyle='--')
         # plt.xticks([])
         dummy = plt.plot(X_plot, d, 'o-')
         # plt.hist(y_pred, bins=20)
-        dummy = plt.savefig("re/plots/nearest_densities/"+x+"_density.png", dpi=300)
+        dummy = plt.savefig("re/plots/nearest_densities/" + x + "_density.png", dpi=300)
 
+places_attributes = [x for x in df.columns if x.startswith("place") and not x.endswtih("_nearest")]
 
-places_attributes = [x for x in df.columns if x.startswith("place")]
-
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+plt.switch_backend("agg")
 for place_attr in tqdm(places_attributes, total=len(places_attributes), unit="features"):
     y = []
+    y_err = []
+    x_cnt = []
+    x_width = []
+    x_name = []
     plt.clf()
     from_tick = df[place_attr].min()
     to_tick = df[place_attr].max()
-    if to_tick - from_tick > 20:
-        num_ticks = 20
+    if to_tick - from_tick > 10:
+        num_ticks = 10
     else:
         num_ticks = to_tick - from_tick
+    # print(place_attr, " ", num_ticks)
     x = numpy.linspace(from_tick, to_tick, num_ticks+1)
-    for x_val in x:
-        y.append(df.target[df[place_attr]==x_val].mean())
-    dummy = plt.bar(x=x, height=y)
+    for tick_num in range(1,len(x)):
+        i = (df[place_attr] < x[tick_num]) & (df[place_attr] >= x[tick_num - 1])
+        y.append(df.target[i].mean())
+        y_err.append(df.target[i].std())
+        x_cnt.append(sum(i))
+        x_name.append(str(math.ceil(x[tick_num-1])) + "-" + str(math.floor(x[tick_num])))
+    dummy = plt.bar(x=x[0:-1], height=y, width=0.75, alpha =0.75, yerr=y_err, edgecolor="black", capsize=10, ecolor='black', error_kw={"alpha":0.25})
+    # plt.errorbar(elinewidth=1)
+    # plt.text(1, 100000, "qwerty")
+    for i, v in enumerate(y):
+        dummy = plt.text(x[i], v + y_err[i] + 1000, x_cnt[i], color='blue',  alpha=0.5, fontsize=10, horizontalalignment="center")
+    # if to_tick - from_tick <= 10:
+    #     dummy = plt.set_xticklabels(x)
+    # else:
+    #     dummy = plt.set_xticklabels(x_name)
     dummy = plt.title(places_inverse[place_attr]+" ("+place_attr+")")
     dummy = plt.savefig("re/plots/attributes/"+place_attr+".png", dpi=300)
 
@@ -350,3 +366,4 @@ X_test['building_passengerLiftsCount'] = 1
 X_test['building_floors'] = 10
 X_test['building_cargoLiftsCount'] = 0
 X_test['block_id'] = "59.930.5"
+X_test['geo_underground_dist'] = 5

@@ -36,7 +36,7 @@ def get_error(y, y_pred):
     return (len(t[t<0.2])/len(t))
 
 # Dummy Model only on average price
-get_error(y, X.geo_ads_mean)
+# get_error(y, X.geo_ads_mean)
 
 # Delete rare features
 col_objects = {}
@@ -50,28 +50,38 @@ features = list(col_objects_df.index[col_objects_df.cnt>min_instances])
 
 # Set Features for Models
 
-places_features = [x for x in X.columns if x.startswith("place") and not x.endswith("_nearest")]
+places_features = [x for x in df.columns if x.startswith("place") and not x.endswith("_nearest")]
 
 # Binarize place features
-binary_places_features = []
+binary_features = []
 for x in tqdm(places_features, total=len(places_features), unit="features"):
-    X[x+"_bin"] = numpy.where(X[x] > 0, 1, 0)
-    binary_places_features.append(x+"_bin")
-
-# Generate features
-for linear_feature in tqdm(linear_features, total=len(linear_features), unit="features"):
-    # print(linear_feature)
-    X[linear_feature+"_square"] = X[linear_feature]**2
-    X[linear_feature+"_sqrt"] = X[linear_feature].apply(math.sqrt)
-    # X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature])
-    # X_test[linear_feature+"_square"] = X_test[linear_feature]**2
-    # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
-
-
+    df[x+"_bin"] = numpy.where(df[x] > 0, 1, 0)
+    X_test[x+"_bin"] = numpy.where(X_test[x] > 0, 1, 0)
+    binary_features.append(x+"_bin")
 
 coordinate_features = ['geo_lat_1','geo_lon_1','geo_ring']
 linear_features = [x for x in features if x not in coordinate_features]
-polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_features)) + list(map(lambda x: x+"_sqrt", linear_features)) + binary_places_features
+polynomial_features = linear_features + list(map(lambda x: x+"_square", linear_features)) + list(map(lambda x: x+"_sqrt", linear_features))
+
+# Generate features
+
+for linear_feature in tqdm(linear_features, total=len(linear_features), unit="features"):
+    # print(linear_feature)
+    df[linear_feature+"_square"] = df[linear_feature]**2
+    df[linear_feature+"_sqrt"] = df[linear_feature].apply(math.sqrt)
+    # df[] = df[] / df[].std()
+    X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature])
+    X_test[linear_feature+"_square"] = X_test[linear_feature]**2
+    # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
+
+from sklearn import preprocessing
+df1 = pandas.DataFrame(preprocessing.scale(df[polynomial_features], columns=polynomial_features))
+
+for x in places_features:
+    if df[x].max() < 5:
+        print(places_inverse[x])
+
+
 
 
 

@@ -1,10 +1,10 @@
-nonzero_features = sorted(list(set([polynomial_features[n].replace("_square","").replace("_sqrt","") for n,x in enumerate(lr.coef_) if x!=0.0])))
+nonzero_features = sorted(list(set([model_features[n].replace("_square","").replace("_sqrt","") for n,x in enumerate(model.coef_) if x!=0.0])))
 
 # Sort features by coefficient absolute value
 from functools import reduce
 
 # get features with nonzero coefficients
-nonzero_features_with_coef = [(polynomial_features[n].replace("_square","").replace("_sqrt",""),x) for n,x in enumerate(lr.coef_) if x!=0.0]
+nonzero_features_with_coef = [(model_features[n].replace("_square","").replace("_sqrt",""),x) for n,x in enumerate(model.coef_) if x!=0.0]
 
 # sort by coefficient descending
 nonzero_features_sorted = [x[0] for x in sorted(nonzero_features_with_coef, key=lambda x: abs(x[1]), reverse=True)]
@@ -16,8 +16,8 @@ feature_rank = {x:n for n,x in enumerate(nonzero_features_sorted_unique)}
 
 # test_samples = X.sample(10)
 # modifiable_features = [x for x in features if x not in ['geo_ring_1','geo_ring_2','geo_ring_3','geo_lat_1','goe_lon_1']]
-modifiable_features = [x for x in nonzero_features if x not in ['coord_pred','geo_ads_count','geo_ads_mean']]
-modifiable_integer_features = [x for x in modifiable_features if x[0:5] in "place"] + ['building_parking','building_cargoLiftsCount','building_passengerLiftsCount']
+modifiable_features = [x for x in nonzero_features if x not in ['coord_pred','geo_ads_count','geo_ads_mean', 'geo_ring']]
+# modifiable_integer_features = [x for x in modifiable_features if x[0:5] in "place"] + ['building_parking','building_cargoLiftsCount','building_passengerLiftsCount']
 # modifiable_numeric_features = modifiable_integer_features + modifiable_real_features
 
 import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ from scipy.interpolate import make_interp_spline, BSpline
 
 # Dict for setting limits
 features_dict = dict()
-for feature in modifiable_integer_features:
+for feature in modifiable_features:
     features_dict[feature] = dict()
     # features_dict[feature]['min'] = min(X[feature])
     # features_dict[feature]['max'] = max(X[feature])
@@ -46,18 +46,18 @@ for feature in modifiable_integer_features:
     features_dict[feature]['range'] = numpy.linspace(min(X[feature]), max(X[feature]), num_points)
 
 lr_predictions = dict()
-rf_predictions = dict()
+# rf_predictions = dict()
 result_json = []
 
 # Plot integer features
-for feature in modifiable_integer_features:
-    
+for feature in modifiable_features:
+
     # zero_indexes = [n for n,x in enumerate(lr.coef_) if x == 0.0]
     print(feature)
     # if feature in [polynomial_features[x] for x in zero_indexes]:
     #     continue
     lr_predictions[feature] = []
-    rf_predictions[feature] = []
+    # rf_predictions[feature] = []
     feature_range = features_dict[feature]['range']
     if len(feature_range) == 1:
         continue
@@ -66,8 +66,8 @@ for feature in modifiable_integer_features:
         test_sample[feature] = feature_value
         test_sample[feature+"_square"] = feature_value**2
         test_sample[feature+"_sqrt"] = math.sqrt(feature_value)
-        lr_predictions[feature].append(round(lr.predict(test_sample.to_frame().T[polynomial_features])[0],2))
-        rf_predictions[feature].append(round(rf.predict(test_sample.to_frame().T[linear_features])[0],2))
+        lr_predictions[feature].append(round(model.predict(test_sample.to_frame().T[model_features])[0],2))
+        # rf_predictions[feature].append(round(rf.predict(test_sample.to_frame().T[model_features])[0],2))
     # plt.switch_backend('agg')
     plt.clf()
     # fig, ax = plt.subplots()
@@ -81,12 +81,12 @@ for feature in modifiable_integer_features:
     # plt.plot(feature_predictions[feature])
     # plt.savefig("re/plots/raw" + feature + ".png")
     # plt.switch_backend('agg')
-    
+
     # plt.plot(xnew, power_smooth)
-    plt.plot(feature_range, lr_predictions[feature], 'o-', feature_range)
-    
+    plt.plot(feature_range, lr_predictions[feature], 'o-')
+
     if feature.startswith("place"):
-        plt.title(places_inverse[feature] + "(" + feature + ")")
+        plt.title(places_inverse[feature.replace("_bin","")] + "(" + feature + ")")
     if len(feature_range) < 10:
          plt.xticks(feature_range)
     plt.savefig("re/plots/" + str(feature_rank.get(feature,""))+"_"+ feature + ".png", dpi=300)
