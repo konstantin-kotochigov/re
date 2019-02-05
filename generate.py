@@ -47,6 +47,9 @@ for x in features:
 col_objects_df = pandas.DataFrame.from_dict(col_objects, orient="index", columns=["cnt"]).sort_values("cnt")
 features = list(col_objects_df.index[col_objects_df.cnt>min_instances])
 
+# delete features with no variance
+
+
 
 # Set Features for Models
 

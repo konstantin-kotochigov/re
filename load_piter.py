@@ -285,7 +285,7 @@ if (assess_quality):
         # plt.hist(y_pred, bins=20)
         dummy = plt.savefig("re/plots/nearest_densities/" + x + "_density.png", dpi=300)
 
-places_attributes = [x for x in df.columns if x.startswith("place") and not x.endswtih("_nearest")]
+places_attributes = [x for x in df.columns if x.startswith("place") and not x.endswith("_nearest")]
 
 import matplotlib
 matplotlib.use("Agg")
@@ -294,6 +294,7 @@ plt.switch_backend("agg")
 for place_attr in tqdm(places_attributes, total=len(places_attributes), unit="features"):
     y = []
     y_err = []
+    y_color = []
     x_cnt = []
     x_width = []
     x_name = []
@@ -305,14 +306,17 @@ for place_attr in tqdm(places_attributes, total=len(places_attributes), unit="fe
     else:
         num_ticks = to_tick - from_tick
     # print(place_attr, " ", num_ticks)
-    x = numpy.linspace(from_tick, to_tick, num_ticks+1)
+    x = list(numpy.linspace(from_tick, to_tick, num_ticks+1))
+    x.append(max(x)+1)
     for tick_num in range(1,len(x)):
         i = (df[place_attr] < x[tick_num]) & (df[place_attr] >= x[tick_num - 1])
-        y.append(df.target[i].mean())
-        y_err.append(df.target[i].std())
+        val = (df.target[i]-df.geo_ads_mean[i])
+        y.append(val.mean())
+        y_err.append(val.std())
         x_cnt.append(sum(i))
         x_name.append(str(math.ceil(x[tick_num-1])) + "-" + str(math.floor(x[tick_num])))
-    dummy = plt.bar(x=x[0:-1], height=y, width=0.75, alpha =0.75, yerr=y_err, edgecolor="black", capsize=10, ecolor='black', error_kw={"alpha":0.25})
+    y_color = ["blue" if x >0 else "red" for x in y]
+    dummy = plt.bar(x=x[0:-1], height=y, width=max(0.75, (to_tick-from_tick)/11), color=y_color, alpha =0.75, yerr=y_err, edgecolor="black", capsize=10, ecolor='black', error_kw={"alpha":0.25})
     # plt.errorbar(elinewidth=1)
     # plt.text(1, 100000, "qwerty")
     for i, v in enumerate(y):
