@@ -15,6 +15,7 @@ from tqdm import tqdm
 # Load Saved Data
 df = pandas.read_csv("re/piter_df.csv", sep=";")
 places_inverse = pandas.read_csv("re/feature_encoding.csv", sep=";", index_col=0).to_dict(orient="dict")['feature_name']
+X_test = pandas.read_csv("re/test.csv", sep=";")
 
 # Create List of Model Features
 features = list(df.columns)
@@ -76,16 +77,3 @@ for linear_feature in tqdm(linear_features, total=len(linear_features), unit="fe
     X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature])
     X_test[linear_feature+"_square"] = X_test[linear_feature]**2
     # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
-
-from sklearn import preprocessing
-df1 = pandas.DataFrame(preprocessing.scale(df[polynomial_features], columns=polynomial_features))
-
-for x in places_features:
-    if df[x].max() < 5:
-        print(places_inverse[x])
-
-
-
-
-
-

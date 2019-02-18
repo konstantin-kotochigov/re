@@ -46,6 +46,10 @@ for (i,x) in enumerate(places.keys()):
     places_inverse["place"+str(i)+"_1000"] = x
     places_inverse["place"+str(i)+"_nearest"] = x
 
+
+
+
+
 places_inverse_df = pandas.DataFrame.from_dict(places_inverse, orient="index", columns=["feature_name"])
 places_inverse_df.to_csv("re/feature_encoding.csv", sep=";", index=True)
 
@@ -83,16 +87,13 @@ geo_underground_new = []
 
 line_num = 0
 for line in cian_data:
-
     line_num = line_num + 1
     if line_num % 1000 == 0:
         print("records read: "+str(line_num))
-
     # Inner Data Structures
     data = line['data']
     rings = line['data']['rings']
     places = line['data']['places']
-
     # ID attributes
     address.append(line['data']['geo']['userInput'])
     geo_lat.append(line['data']['geo']['coordinates']['lat'])
@@ -106,7 +107,6 @@ for line in cian_data:
     # address_street = [x for x in data['geo']['address'] if x['type']=="street"][0]['fullName']
     # address_house = [x for x in data['geo']['address'] if x['type']=="house"][0]['fullName']
     # address.append(address_city+","+address_street+","+address_house)
-
     # Geo Attributes
     geo_lat_2.append(round(float(line['data']['geo']['coordinates']['lat']),2))
     geo_lon_2.append(round(float(line['data']['geo']['coordinates']['lng']),2))
@@ -132,10 +132,8 @@ for line in cian_data:
             places_dict["place"+str(i)+"_nearest"].append(places[x]['minDistance']['value'])
         else:
             places_dict["place"+str(i)+"_nearest"].append(None)
-
     # Target Variable
     target.append(round(float(line['price'])/float(data['totalArea']),2))
-
     # Building attributes
     building_floors.append(data['building'].get('floorsCount',0))
     building_cargoLiftsCount.append(data['building'].get('cargoLiftsCount',numpy.NaN))
@@ -143,13 +141,11 @@ for line in cian_data:
     building_totalArea.append(data['building'].get('totalArea',-1))
     building_materialType.append(data['building'].get('materialType','NA'))
     building_buildYear.append(2018 - data['building'].get("buildYear",2018))
-
     if "parking" in data['building']:
         parking = len(data['building']['parking'])
     else:
         parking = 0.0
     building_parking.append(parking)
-
     # flatType.append(data['flatType'])
     # floorNumber.append(data['floorNumber'])
     # roomsCount.append(data.get('roomsCount',-1))
@@ -371,3 +367,5 @@ X_test['building_floors'] = 10
 X_test['building_cargoLiftsCount'] = 0
 X_test['block_id'] = "59.930.5"
 X_test['geo_underground_dist'] = 5
+
+X_test.to_frame().T.to_csv("re/test.csv", sep=";", index=False, header=True)
