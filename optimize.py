@@ -24,7 +24,11 @@ class Optimizer:
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-optimization_features = polynomial_features + ['geo_ads_mean','geo_ring','building_buildYear','building_floors','geo_underground_dist','geo_underground_new','building_parking','building_totalArea','building_material_block', 'building_material_brick', 'building_material_monolith', 'building_material_monolithBrick', 'building_material_old', 'building_material_panel', 'building_material_stalin', 'building_material_wood']
+binary_1_indexes = [19,20,21,23,24,28,33,34,35,42,45,2,8]
+optimization_features = ['place' + str(x) + '_1000_bin_1' for x in binary_1_indexes]
+optimization_features = optimization_features + ['place' + str(x) + '_1000_bin_2' for x in range(47) if x not in binary_1_indexes]
+optimization_features = optimization_features + ['geo_ads_mean','geo_ring','building_buildYear','building_floors','geo_underground_dist','geo_underground_new','building_parking','building_totalArea','building_material_block', 'building_material_brick', 'building_material_monolith', 'building_material_monolithBrick', 'building_material_old', 'building_material_panel', 'building_material_stalin', 'building_material_wood']
+optimization_features = sorted(optimization_features)
 
 X = df[df.city=="Санкт-Петербург"].copy()
 y = df[df.city=="Санкт-Петербург"]['target']

@@ -57,11 +57,18 @@ features = list(col_objects_df.index[col_objects_df.cnt>min_instances])
 places_features = [x for x in df.columns if x.startswith("place") and not x.endswith("_nearest")]
 
 # Binarize place features
-binary_features = []
+binary_features_1 = []
+binary_features_2 = []
 for x in tqdm(places_features, total=len(places_features), unit="features"):
-    df[x+"_bin"] = numpy.where(df[x] > 0, 1, 0)
-    X_test[x+"_bin"] = numpy.where(X_test[x] > 0, 1, 0)
-    binary_features.append(x+"_bin")
+    df[x+"_bin_1"] = numpy.where(df[x] > 0, 1, 0)
+    df[x + "_bin_2"] = numpy.where(df[x] > 2, 2, df[x])
+    X_test[x+"_bin_1"] = numpy.where(X_test[x] > 0, 1, 0)
+    X_test[x + "_bin_2"] = numpy.where(X_test[x] > 2, 2, X_test[x])
+    binary_features_1.append(x + "_bin_1")
+    binary_features_2.append(x + "_bin_2")
+
+# Draw binarized attributes
+# draw_y_distribtion(places_attributes, normalize=False, output_path="/srv/kkotochigov/re/plots/attributes/")
 
 coordinate_features = ['geo_lat_1','geo_lon_1','geo_ring']
 linear_features = [x for x in features if x not in coordinate_features]
@@ -77,3 +84,5 @@ for linear_feature in tqdm(linear_features, total=len(linear_features), unit="fe
     X_test[linear_feature+"_sqrt"] = math.sqrt(X_test[linear_feature])
     X_test[linear_feature+"_square"] = X_test[linear_feature]**2
     # X[linear_feature+"_log"] = X[linear_feature].apply(lambda x: math.log(x+0.01))
+
+

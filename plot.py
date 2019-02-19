@@ -45,55 +45,31 @@ for feature in modifiable_features:
     num_points =  min(len(X[feature].value_counts()), 20)
     features_dict[feature]['range'] = numpy.linspace(min(X[feature]), max(X[feature]), num_points)
 
-lr_predictions = dict()
-# rf_predictions = dict()
-result_json = []
+        lr_predictions = dict()
+        # rf_predictions = dict()
+        result_json = []
 
-# Plot integer features
-for feature in modifiable_features:
-
-    # zero_indexes = [n for n,x in enumerate(lr.coef_) if x == 0.0]
-    print(feature)
-    # if feature in [polynomial_features[x] for x in zero_indexes]:
-    #     continue
-    lr_predictions[feature] = []
-    # rf_predictions[feature] = []
-    feature_range = features_dict[feature]['range']
-    if len(feature_range) == 1:
-        continue
-    for feature_value in feature_range:
-        test_sample = X_test.copy()
-        test_sample[feature] = feature_value
-        test_sample[feature+"_square"] = feature_value**2
-        test_sample[feature+"_sqrt"] = math.sqrt(feature_value)
-        lr_predictions[feature].append(round(model.predict(test_sample.to_frame().T[model_features])[0],2))
-        # rf_predictions[feature].append(round(rf.predict(test_sample.to_frame().T[model_features])[0],2))
-    # plt.switch_backend('agg')
-    plt.clf()
-    # fig, ax = plt.subplots()
-    # xnew = numpy.linspace(features_dict[feature]['min'], features_dict[feature]['max'], len(feature_range))
-    # if len(feature_range) <= 2:
-    #     power = 1
-    # else:
-    #     power = 2
-    # spl = make_interp_spline(list(feature_range),lr_predictions[feature], k=power)
-    # power_smooth = spl(xnew)
-    # plt.plot(feature_predictions[feature])
-    # plt.savefig("re/plots/raw" + feature + ".png")
-    # plt.switch_backend('agg')
-
-    # plt.plot(xnew, power_smooth)
-    plt.plot(feature_range, lr_predictions[feature], 'o-')
-
-    if feature.startswith("place"):
-        plt.title(places_inverse[feature.replace("_bin","")] + "(" + feature + ")")
-    if len(feature_range) < 10:
-         plt.xticks(feature_range)
-    plt.savefig("re/plots/" + str(feature_rank.get(feature,""))+"_"+ feature + ".png", dpi=300)
-    result_json.append({"feature_id":feature,"feature_name":places_inverse.get(feature,""), "feature_rank":feature_rank[feature], "x":list(feature_range), "y":list(lr_predictions[feature])})
-    # result_json[feature] = {"feature_name": places_inverse.get(feature, "")}
-    # result_json[feature] = {"feature_name": places_inverse.get(feature, ""), "feature_rank": feature_rank[feature], "x": list(feature_range)}
-    # result_json[feature] = {"feature_name": places_inverse.get(feature, ""), "feature_rank": feature_rank[feature],"x": feature_range, "y": lr_predictions[feature]}
+        # Plot integer features
+        for feature in modifiable_features:
+            print(feature)
+            lr_predictions[feature] = []
+            feature_range = features_dict[feature]['range']
+            if len(feature_range) == 1:
+                continue
+            for feature_value in feature_range:
+                test_sample = X_test.copy()
+                test_sample[feature] = feature_value
+                test_sample[feature+"_square"] = feature_value**2
+                test_sample[feature+"_sqrt"] = math.sqrt(feature_value)
+                lr_predictions[feature].append(round(model.predict(test_sample[model_features])[0],2))
+            plt.clf()
+            plt.plot(feature_range, lr_predictions[feature], 'o-')
+            if feature.startswith("place"):
+                plt.title(places_inverse[feature.replace("_bin_2","").replace("_bin_1","")] + "(" + feature + ")")
+            if len(feature_range) < 10:
+                 plt.xticks(feature_range)
+            plt.savefig("re/plots/" + str(feature_rank.get(feature,""))+"_"+ feature + ".png", dpi=300)
+            result_json.append({"feature_id":feature,"feature_name":places_inverse.get(feature,""), "feature_rank":feature_rank[feature], "x":list(feature_range), "y":list(lr_predictions[feature])})
 
 
 # Plot categorical features

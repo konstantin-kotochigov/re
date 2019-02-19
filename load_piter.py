@@ -283,55 +283,45 @@ if (assess_quality):
 
 places_attributes = [x for x in df.columns if x.startswith("place") and not x.endswith("_nearest")]
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-plt.switch_backend("agg")
-for place_attr in tqdm(places_attributes, total=len(places_attributes), unit="features"):
-    y = []
-    y_err = []
-    y_color = []
-    x_cnt = []
-    x_width = []
-    x_name = []
-    plt.clf()
-    from_tick = df[place_attr].min()
-    to_tick = df[place_attr].max()
-    if to_tick - from_tick > 10:
-        num_ticks = 10
-    else:
-        num_ticks = to_tick - from_tick
-    # print(place_attr, " ", num_ticks)
-    x = list(numpy.linspace(from_tick, to_tick, num_ticks+1))
-    x.append(max(x)+1)
-    for tick_num in range(1,len(x)):
-        i = (df[place_attr] < x[tick_num]) & (df[place_attr] >= x[tick_num - 1])
-        val = (df.target[i]-df.geo_ads_mean[i])
-        y.append(val.mean())
-        y_err.append(val.std())
-        x_cnt.append(sum(i))
-        x_name.append(str(math.ceil(x[tick_num-1])) + "-" + str(math.floor(x[tick_num])))
-    y_color = ["blue" if x >0 else "red" for x in y]
-    dummy = plt.bar(x=x[0:-1], height=y, width=max(0.75, (to_tick-from_tick)/11), color=y_color, alpha =0.75, yerr=y_err, edgecolor="black", capsize=10, ecolor='black', error_kw={"alpha":0.25})
-    # plt.errorbar(elinewidth=1)
-    # plt.text(1, 100000, "qwerty")
-    for i, v in enumerate(y):
-        dummy = plt.text(x[i], v + y_err[i] + 1000, x_cnt[i], color='blue',  alpha=0.5, fontsize=10, horizontalalignment="center")
-    # if to_tick - from_tick <= 10:
-    #     dummy = plt.set_xticklabels(x)
-    # else:
-    #     dummy = plt.set_xticklabels(x_name)
-    dummy = plt.title(places_inverse[place_attr]+" ("+place_attr+")")
-    dummy = plt.savefig("re/plots/attributes/"+place_attr+".png", dpi=300)
+def draw_y_distribtion(cols, normalize=False, output_path="./"):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.switch_backend("agg")
+    for place_attr in tqdm(cols, total=len(cols), unit="features"):
+        y = []
+        y_err = []
+        x_cnt = []
+        x_name = []
+        plt.clf()
+        from_tick = df[place_attr].min()
+        to_tick = df[place_attr].max()
+        if to_tick - from_tick > 10:
+            num_ticks = 10
+        else:
+            num_ticks = to_tick - from_tick
+        x = list(numpy.linspace(from_tick, to_tick, num_ticks+1))
+        x.append(max(x)+1)
+        for tick_num in range(1,len(x)):
+            i = (df[place_attr] < x[tick_num]) & (df[place_attr] >= x[tick_num - 1])
+            if normalize:
+                val = (df.target[i]-df.geo_ads_mean[i])
+            else:
+                val = df.target[i]
+            y.append(val.mean())
+            y_err.append(val.std())
+            x_cnt.append(sum(i))
+            x_name.append(str(math.ceil(x[tick_num-1])) + "-" + str(math.floor(x[tick_num])))
+        y_color = ["blue" if x >0 else "red" for x in y]
+        dummy = plt.bar(x=x[0:-1], height=y, width=max(0.75, (to_tick-from_tick)/11), color=y_color, alpha =0.75, yerr=y_err, edgecolor="black", capsize=10, ecolor='black', error_kw={"alpha":0.25})
+        # plt.text(1, 100000, "qwerty")
+        for i, v in enumerate(y):
+            dummy = plt.text(x[i], v + y_err[i] + 1000, x_cnt[i], color='blue',  alpha=0.5, fontsize=10, horizontalalignment="center")
+        place_attr_normalized = place_attr.replace("_bin_2","").replace("_bin_1","")
+        dummy = plt.title(places_inverse[place_attr_normalized]+" ("+place_attr_normalized+")")
+        dummy = plt.savefig(output_path+place_attr_normalized+".png", dpi=300)
 
-    # Check dependencies for School atribute
-    # test = X.groupby("place15_500", as_index=False)['target'].agg({"mean","count","std"})
-    # import matplotlib
-    # matplotlib.use('agg')
-    # plt.switch_backend('agg')
-    # import matplotlib.pyplot as plt
-    # plt.bar(list(test.index), test["mean"].values, yerr=test['std'].values)
-    # plt.savefig("re/plots/school_dict_500.png", dpi=300)
+draw_y_distribtion(places_attributes, normalize=False, output_path="/srv/kkotochigov/re/plots/attributes/test/")
 
 
 

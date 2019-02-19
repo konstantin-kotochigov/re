@@ -15,7 +15,7 @@ model_features = optimization_features
 for model in models_to_fit:
     models[model].fit(X[model_features],y)
     X[model+'_pred'] = models[model].predict(X[model_features])
-    X_test[model+'_pred'] = models[model].predict(X_test.to_frame().T[model_features])
+    X_test[model+'_pred'] = models[model].predict(X_test[model_features])
     print(get_error(X[model + "_pred"], y))
 
 model = models['elastic']
